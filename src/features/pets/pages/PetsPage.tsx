@@ -1,62 +1,43 @@
 ﻿import { useEffect } from "react";
+import { Link } from "react-router-dom";
 import { petsStore } from "../state/pets.store";
 import { useObservableState } from "../../../lib/useObservableState";
 import { PetCard } from "../components/PetCard";
 import { SearchInput } from "../components/SearchInput";
 import { Pagination } from "../components/Pagination";
 
-import { authFacade } from "../../auth/api/auth.facade";
-import { tokenStorage } from "../../../lib/tokenStorage";
-import { Link } from "react-router-dom";
-
 export function PetsPage() {
   const s = useObservableState(petsStore.state$, petsStore.snapshot);
 
-useEffect(() => {
-  let cancelled = false;
+  useEffect(() => {
+    petsStore.fetch();
+  }, [s.page, s.nome]);
 
-  (async () => {
-    try {
-      // garante tokens válidos pelo menos uma vez
-      if (!tokenStorage.getAccess() || !tokenStorage.getRefresh()) {
-        const tokens = await authFacade.login("admin", "admin");
-        tokenStorage.setTokens(tokens);
-      }
-
-      if (!cancelled) await petsStore.fetch();
-    } catch (e) {
-      // se falhou, tenta um relogin (1x) e busca de novo
-      try {
-        tokenStorage.clear();
-        const tokens = await authFacade.login("admin", "admin");
-        tokenStorage.setTokens(tokens);
-        if (!cancelled) await petsStore.fetch();
-      } catch {
-        // deixa o erro aparecer no store
-      }
-    }
-  })();
-
-  return () => {
-    cancelled = true;
-  };
-}, [s.page, s.nome]);
   return (
     <div className="p-6">
       <div className="flex flex-col gap-4">
         <div>
-          <div className="text-2xl font-bold text-slate-800">Pets {s.data ? `(${s.data.total})` : ""}</div>
+          <div className="text-2xl font-bold text-slate-800">
+            Pets {s.data ? `(${s.data.total})` : ""}
+          </div>
           <div className="text-sm text-slate-500">Gerencie os animais e seus registros.</div>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
           <div className="flex gap-2">
-          <Link to="/pets/novo" className="px-4 py-2 rounded-xl bg-orange-500 text-white hover:bg-orange-600">
-            + Novo Pet
-          </Link>
-            <button className="px-4 py-2 rounded-xl border bg-white hover:bg-slate-50">
+            <Link
+              to="/pets/novo"
+              className="px-4 py-2 rounded-xl bg-orange-500 text-white hover:bg-orange-600"
+            >
+              + Novo Pet
+            </Link>
+
+            <Link
+              to="/tutores/novo"
+              className="px-4 py-2 rounded-xl border bg-white hover:bg-slate-50"
+            >
               + Novo Tutor
-            </button>
+            </Link>
           </div>
 
           <SearchInput value={s.nome} onChange={(v) => petsStore.setNome(v)} />
@@ -80,6 +61,7 @@ useEffect(() => {
           <div className="text-sm text-slate-500">
             Mostrando {s.data?.content?.length ?? 0} de {s.data?.total ?? 0}
           </div>
+
           <Pagination
             page={s.page}
             pageCount={s.data?.pageCount ?? 1}

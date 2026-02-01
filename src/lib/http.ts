@@ -1,6 +1,7 @@
 ﻿import axios from "axios";
 import { tokenStorage } from "./tokenStorage";
 import { authFacade } from "../features/auth/api/auth.facade";
+import { authStore } from "../features/auth/state/auth.store";
 
 export const http = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -15,8 +16,18 @@ function resolveQueue(newAccessToken: string) {
   pendingQueue = [];
 }
 
-function rejectQueue(err: any) {
+function rejectQueue(_err: any) {
   pendingQueue = [];
+}
+
+function forceLogout() {
+  tokenStorage.clear();
+  authStore.logout();
+
+  // Redirect hard (funciona mesmo fora de componentes React)
+  if (window.location.pathname !== "/login") {
+    window.location.href = "/login";
+  }
 }
 
 http.interceptors.request.use((config) => {
@@ -25,10 +36,6 @@ http.interceptors.request.use((config) => {
     config.headers = config.headers ?? {};
     config.headers.Authorization = `Bearer ${token}`;
   }
-
-  // ⚠️ Evite logar token em produção
-  // console.log("AUTH HEADER:", config.headers?.Authorization);
-
   return config;
 });
 
@@ -37,33 +44,29 @@ http.interceptors.response.use(
   async (error) => {
     const original = error?.config;
 
-    // Se não tem config ou já tentou refresh nessa mesma request, devolve erro
     if (!original || original._retry) {
       return Promise.reject(error);
     }
 
-    // Se não for 401, devolve
     if (error?.response?.status !== 401) {
       return Promise.reject(error);
     }
 
-    // ✅ Não tenta refresh para endpoints de auth (evita loop infinito)
+    // ✅ Evita loop infinito com endpoints de auth
     const url = String(original?.url || "");
     if (url.includes("/autenticacao/login") || url.includes("/autenticacao/refresh")) {
-      tokenStorage.clear();
+      forceLogout();
       return Promise.reject(error);
     }
 
     const refreshToken = tokenStorage.getRefresh();
     if (!refreshToken) {
-      tokenStorage.clear();
+      forceLogout();
       return Promise.reject(error);
     }
 
-    // Marca como retry
     original._retry = true;
 
-    // Se já está fazendo refresh, enfileira a request
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         pendingQueue.push((newToken) => {
@@ -91,8 +94,8 @@ http.interceptors.response.use(
       original.headers.Authorization = `Bearer ${newAccess}`;
       return http(original);
     } catch (e) {
-      tokenStorage.clear();
       rejectQueue(e);
+      forceLogout();
       return Promise.reject(e);
     } finally {
       isRefreshing = false;
