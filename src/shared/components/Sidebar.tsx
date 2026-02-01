@@ -13,7 +13,7 @@
 
         <div className="text-xs text-white/60 mt-6 mb-2">Ações Rápidas</div>
         <a className="block px-3 py-2 rounded-lg hover:bg-white/10" href="/">+ Novo Pet</a>
-        <a className="block px-3 py-2 rounded-lg hover:bg-white/10" href="/tutores">+ Novo Tutor</a>
+        <a className="block px-3 py-2 rounded-lg hover:bg-white/10" href="/tutores/novo">+ Novo Tutor</a>
       </nav>
 
       <div className="p-4 border-t border-white/10 text-sm">

@@ -1,32 +1,29 @@
-import { http } from "../../../lib/http";
+import axios from "axios";
 import type { TokenPayload } from "../../../lib/tokenStorage";
+
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 export const authFacade = {
   async login(username: string, password: string) {
-    const res = await http.post<TokenPayload>("/autenticacao/login", {
-      username,
-      password,
-    });
+    const res = await axios.post<TokenPayload>(
+      `${baseURL}/autenticacao/login`,
+      { username, password },
+      { timeout: 15000 }
+    );
     return res.data;
   },
 
   async refresh(refreshToken: string) {
-    // Tenta 1) sem Bearer (muito comum)
-    try {
-      const res = await http.put<TokenPayload>(
-        "/autenticacao/refresh",
-        {},
-        { headers: { Authorization: refreshToken } }
-      );
-      return res.data;
-    } catch {
-      // Tenta 2) com Bearer
-      const res = await http.put<TokenPayload>(
-        "/autenticacao/refresh",
-        {},
-        { headers: { Authorization: `Bearer ${refreshToken}` } }
-      );
-      return res.data;
-    }
+    const res = await axios.put<TokenPayload>(
+      `${baseURL}/autenticacao/refresh`,
+      null,
+      {
+        timeout: 15000,
+        headers: {
+          Authorization: `Bearer ${refreshToken}`, // refresh token aqui
+        },
+      }
+    );
+    return res.data;
   },
 };

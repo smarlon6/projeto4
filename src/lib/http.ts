@@ -15,13 +15,20 @@ function resolveQueue(newAccessToken: string) {
   pendingQueue = [];
 }
 
+function rejectQueue(err: any) {
+  pendingQueue = [];
+}
+
 http.interceptors.request.use((config) => {
   const token = tokenStorage.getAccess();
   if (token) {
     config.headers = config.headers ?? {};
     config.headers.Authorization = `Bearer ${token}`;
   }
-  console.log("AUTH HEADER:", config.headers?.Authorization);
+
+  // ⚠️ Evite logar token em produção
+  // console.log("AUTH HEADER:", config.headers?.Authorization);
+
   return config;
 });
 
@@ -40,6 +47,13 @@ http.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    // ✅ Não tenta refresh para endpoints de auth (evita loop infinito)
+    const url = String(original?.url || "");
+    if (url.includes("/autenticacao/login") || url.includes("/autenticacao/refresh")) {
+      tokenStorage.clear();
+      return Promise.reject(error);
+    }
+
     const refreshToken = tokenStorage.getRefresh();
     if (!refreshToken) {
       tokenStorage.clear();
@@ -51,10 +65,15 @@ http.interceptors.response.use(
 
     // Se já está fazendo refresh, enfileira a request
     if (isRefreshing) {
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
         pendingQueue.push((newToken) => {
-          original.headers.Authorization = `Bearer ${newToken}`;
-          resolve(http(original));
+          try {
+            original.headers = original.headers ?? {};
+            original.headers.Authorization = `Bearer ${newToken}`;
+            resolve(http(original));
+          } catch (e) {
+            reject(e);
+          }
         });
       });
     }
@@ -68,10 +87,12 @@ http.interceptors.response.use(
       const newAccess = payload.access_token;
       resolveQueue(newAccess);
 
+      original.headers = original.headers ?? {};
       original.headers.Authorization = `Bearer ${newAccess}`;
       return http(original);
     } catch (e) {
       tokenStorage.clear();
+      rejectQueue(e);
       return Promise.reject(e);
     } finally {
       isRefreshing = false;

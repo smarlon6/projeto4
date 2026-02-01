@@ -15,6 +15,10 @@ export type Tutor = {
   foto?: Foto | null;
 };
 
+export type TutorDetail = Tutor & {
+  pets?: Pet[];
+};
+
 export type Pet = {
   id: number;
   nome: string;
@@ -34,3 +38,5 @@ export type PageResponse<T> = {
   pageCount: number;
   content: T[];
 };
+
+
