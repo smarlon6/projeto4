@@ -51,9 +51,12 @@ export function PetDetailPage() {
           <Link className="px-4 py-2 rounded-xl border bg-white hover:bg-slate-50" to="/">
             ← Voltar
           </Link>
-          <button className="px-4 py-2 rounded-xl bg-orange-500 text-white hover:bg-orange-600">
+            <Link
+            className="px-4 py-2 rounded-xl bg-orange-500 text-white hover:bg-orange-600"
+            to={`/pets/${s.pet?.id}/editar`}
+            >
             Editar
-          </button>
+            </Link>
         </div>
       </div>
 

@@ -7,6 +7,7 @@ import { Pagination } from "../components/Pagination";
 
 import { authFacade } from "../../auth/api/auth.facade";
 import { tokenStorage } from "../../../lib/tokenStorage";
+import { Link } from "react-router-dom";
 
 export function PetsPage() {
   const s = useObservableState(petsStore.state$, petsStore.snapshot);
@@ -50,9 +51,9 @@ useEffect(() => {
 
         <div className="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
           <div className="flex gap-2">
-            <button className="px-4 py-2 rounded-xl bg-orange-500 text-white hover:bg-orange-600">
-              + Novo Pet
-            </button>
+          <Link to="/pets/novo" className="px-4 py-2 rounded-xl bg-orange-500 text-white hover:bg-orange-600">
+            + Novo Pet
+          </Link>
             <button className="px-4 py-2 rounded-xl border bg-white hover:bg-slate-50">
               + Novo Tutor
             </button>
