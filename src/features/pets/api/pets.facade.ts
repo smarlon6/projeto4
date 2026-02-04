@@ -40,7 +40,7 @@ export const petsFacade = {
   async update(id: number, input: PetInput) {
     const res = await http.put<Pet>(`/v1/pets/${id}`, input);
     return res.data;
-  }, 
+  },
 
   async uploadFoto(id: number, file: File) {
     const form = new FormData();
@@ -51,7 +51,10 @@ export const petsFacade = {
     });
 
     return res.data;
-  },  
-  
+  },
 
+  // ✅ NOVO: excluir pet (204 No Content)
+  async remove(id: number) {
+    await http.delete(`/v1/pets/${id}`);
+  },
 };

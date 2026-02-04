@@ -94,7 +94,7 @@ export function PetDetailPage() {
           <div className="lg:col-span-2 space-y-4">
             <div className="rounded-2xl border bg-white p-5 shadow-sm">
               <div className="text-lg font-bold text-slate-800">Tutores</div>
-              <div className="text-sm text-slate-500">Se houver tutor, exibimos nome e contato.</div>
+
 
               {s.tutoresDetalhados.length === 0 ? (
                 <div className="mt-4 text-sm text-slate-500">Nenhum tutor vinculado.</div>
@@ -113,17 +113,7 @@ export function PetDetailPage() {
               )}
             </div>
 
-            <div className="rounded-2xl border bg-white p-5 shadow-sm">
-              <div className="text-lg font-bold text-slate-800">Ações</div>
-              <div className="mt-3 flex gap-2 flex-wrap">
-                <button className="px-4 py-2 rounded-xl border bg-white hover:bg-slate-50">
-                  Upload de foto (Etapa 3)
-                </button>
-                <button className="px-4 py-2 rounded-xl border bg-white hover:bg-slate-50">
-                  Vincular tutor (Etapa 4/5)
-                </button>
-              </div>
-            </div>
+
           </div>
         </div>
       )}
